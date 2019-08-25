@@ -1,5 +1,5 @@
-const spawn = require('child_process').spawn;
-const exec = require('child_process').exec;
+const spawnSync = require('child_process').spawnSync;
+const execSync = require('child_process').execSync;
 const os = require('os');
 
 const defaultOptions = {
@@ -22,11 +22,6 @@ export default class WebpackShellPlugin {
     }
   }
 
-  spreadStdoutAndStdErr(proc) {
-    proc.stdout.pipe(process.stdout);
-    proc.stderr.pipe(process.stdout);
-  }
-
   serializeScript(script) {
     if (typeof script === 'string') {
       const [command, ...args] = script.split(' ');
@@ -38,11 +33,10 @@ export default class WebpackShellPlugin {
 
   handleScript(script) {
     if (os.platform() === 'win32' || this.options.safe) {
-      this.spreadStdoutAndStdErr(exec(script, this.puts));
+      execSync(script, this.puts);
     } else {
       const {command, args} = this.serializeScript(script);
-      const proc = spawn(command, args, {stdio: 'inherit'});
-      proc.on('close', this.puts);
+      spawnSync(command, args, {stdio: 'inherit'});
     }
   }
 
